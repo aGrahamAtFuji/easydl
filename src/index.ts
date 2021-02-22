@@ -31,6 +31,9 @@ interface Options {
   retryBackoff?: number;
   /** Set how frequent `progress` event emitted by `EasyDL`  */
   reportInterval?: number;
+  /** Whether `EasyDl` should ignore the fact some servers do not return the accept-ranges. */
+  ignoreMissingAcceptRanges?: boolean;
+  
 }
 
 interface RetryInfo {
@@ -248,6 +251,7 @@ class EasyDl extends EventEmitter {
    * - `retryDelay` - Delay before attempting to retry in ms
    * - `retryBackoff` - Incremental back-off after each retry in ms
    * - `reportInterval` - Set how frequent `progress` event emitted by `EasyDL`
+   * - `ignoreMissingAcceptRanges` - Whether `EasyDl` should ignore the fact some servers do not return the accept-ranges
    */
   constructor(url: string, dest: string, options?: Options) {
     super();
@@ -263,6 +267,7 @@ class EasyDl extends EventEmitter {
         retryDelay: 2000,
         retryBackoff: 3000,
         reportInterval: 2500,
+        ignoreMissingAcceptRanges: false,
       },
       options
     );
@@ -444,7 +449,7 @@ class EasyDl extends EventEmitter {
             return;
           }
 
-          if (range && statusCode !== 206) {
+          if ((range && statusCode !== 206) && (range && statusCode === 200 && !this._opts.ignoreMissingAcceptRanges)) {
             error = new Error(
               `Expecting HTTP Status code 206 but got ${statusCode} when downloading chunk ${id}`
             );
@@ -590,7 +595,8 @@ class EasyDl extends EventEmitter {
         this._opts.connections !== 1 &&
         this.headers &&
         this.headers["content-length"] &&
-        this.headers["accept-ranges"] === "bytes"
+        (this.headers["accept-ranges"] === "bytes" 
+          || this._opts.ignoreMissingAcceptRanges)
       ) {
         this.size = parseInt(this.headers["content-length"]);
         this._calcRanges();

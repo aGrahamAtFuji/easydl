@@ -291,6 +291,7 @@ new EasyDl(url, dest, options);
 - `retryDelay` - Delay in ms before attempting a retry. Defaults to `2000`.
 - `retryBackoff` - Incremental back-off in ms for each failed retries. Defaults to `3000`.
 - `reportInterval` - Set how frequent `progress` event emitted by `EasyDL`. Defaults to `2500`.
+- `ignoreMissingAcceptRanges` - Whether `EasyDl` should ignore the fact some servers do not return the accept-ranges header, BUT DO respond correctly to requests with byte Range requests,  allowing for parallel and resumable downloads.  This option should only be used with specifically tested servers
 
 ### Metadata
 
